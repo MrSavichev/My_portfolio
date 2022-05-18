@@ -1,0 +1,122 @@
+# -*- coding: utf-8 -*-
+
+import telebot;
+from telebot import types
+
+bot = telebot.TeleBot('токен');
+
+@bot.message_handler(commands=['start'])
+def handle_start(message):
+    user_markup = telebot.types.ReplyKeyboardMarkup(True, False)
+    user_markup.row('срочный вызов', 'запись на приём')
+    user_markup.row('прочее')
+    bot.send_message(message.from_user.id, 'Добро пожаловать в нашу ветеринарную клинику! Чем можем быть полезны?',reply_markup=user_markup)
+
+
+
+@bot.message_handler(content_types=["text"]) # тут ответы на вопросы пользователя
+def get_text_messages(message):
+    if message.text == 'срочный вызов':
+        bot.send_message(message.chat.id, '''
+Номера городской ветеринарной клиники
++7 (812) 527-50-45
++7 (812) 527-50-43
++7 (812) 527-09-46
+Выполните звонок по одному
+из предложенных номеров!''')
+    if message.text == 'запись на приём':
+        bot.send_message(message.chat.id, '''Хорошо! Вот тебе ссылка на сайт!
+Скорее записывайся, пока есть окошки:)
+https://lorivet.ru/uslugi/''')
+    if message.text == 'Что делать, если кошка отравилась?':
+	    bot.send_message(message.chat.id, '''
+При подозрении на отравление необходимо незамедлительно прервать контакт кошки с токсинами:
+смыть химикаты с шерсти,
+промыть желудок,
+вынести животное на свежий воздух,
+обратиться к ветеринарному врачу.
+Не стоит ждать, пока все наладиться само собой — токсины могут не просто вызвать временное расстройство и рвоту,
+причинив серьезный ущерб здоровью животного, но даже привести к летальному исходу.
+Если кошка отравилась химикатами, ни в коем случае не делайте промывание желудка самостоятельно, это только ухудшит ее состояние.''')
+
+# инлайн кнопки
+    if message.text == 'прочее':
+        keyboardmain = types.InlineKeyboardMarkup(row_width=2)
+        first_button = types.InlineKeyboardButton(text="питомцы", callback_data="first")
+        second_button = types.InlineKeyboardButton(text="локация", callback_data="second")
+        keyboardmain.add(first_button, second_button)
+        bot.send_message(message.chat.id, "Что Вас интересует?", reply_markup=keyboardmain)
+
+@bot.callback_query_handler(func=lambda call:True)
+def callback_inline(call):
+    if call.data == "mainmenu":
+
+        keyboardmain = types.InlineKeyboardMarkup(row_width=2)
+        first_button = types.InlineKeyboardButton(text="питомцы", callback_data="first")
+        second_button = types.InlineKeyboardButton(text="локация", callback_data="second")
+        keyboardmain.add(first_button, second_button)
+        bot.edit_message_text(chat_id=call.message.chat.id,message_id=call.message.message_id, text="Что Вас интересует?",reply_markup=keyboardmain)
+
+    if call.data == "first":
+        keyboard = types.InlineKeyboardMarkup()
+        rele1 = types.InlineKeyboardButton(text="Про котиков", callback_data="1")
+        rele2 = types.InlineKeyboardButton(text="Про пёсиков", callback_data="2")
+        rele3 = types.InlineKeyboardButton(text="Остальные питомцы", callback_data="3")
+        backbutton = types.InlineKeyboardButton(text="назад", callback_data="mainmenu")
+        keyboard.add(rele1, rele2, rele3, backbutton)
+        bot.edit_message_text(chat_id=call.message.chat.id,message_id=call.message.message_id, text="Выберите из списка нужную категорию!",reply_markup=keyboard)
+
+    elif call.data == "second":
+        bot.send_chat_action(call.message.from_user.id, 'find_location')
+        bot.send_location(call.message.chat.id,  59.963748, 30.4884652)
+        bot.send_message(call.message.chat.id, '2-я Жерновская ул. , 46, Санкт-Петербург, 195043')
+
+    elif call.data == "1":
+        bot.send_message(call.message.chat.id, text='''
+Чтобы узнать ответ на вопрос, просто введи его в чате!!
+На данный момент бот может ответить на следующие вопросы:
+
+Бывает ли простуда у кошек?
+Чем лечить лишай у кошек?
+Что делать, если кошка отравилась?
+Что делать, если у котенка грязные уши внутри?
+До какого возраста рожают кошки?
+Как дать кошке таблетку от глистов?
+Как начинаются роды у кошки?
+Как убедиться, что кошка после родов чувствует себя хорошо?
+Как вытащить клеща у кота?
+
+Полный список вопросов находится на сайте
+https://www.royalcanin.com/ru/cats/tips/tips''')
+        keyboard3 = types.InlineKeyboardMarkup()
+        button = types.InlineKeyboardButton(text="категории", callback_data="first")
+        keyboard3.add(button)
+        bot.edit_message_text(chat_id=call.message.chat.id,message_id=call.message.message_id, text="Нажми, чтобы вернуться к категориям!",reply_markup=keyboard3)
+
+    elif call.data == "2":
+        bot.send_message(call.message.chat.id, text='''На данный момент бот ещё находится в разработке и не может ответить на вопросы:(
+Но про собачек можно узнать здесь!
+https://www.royalcanin.com/ru/dogs/tips
+''')
+        keyboard3 = types.InlineKeyboardMarkup()
+        button = types.InlineKeyboardButton(text="категории", callback_data="first")
+        keyboard3.add(button)
+        bot.edit_message_text(chat_id=call.message.chat.id,message_id=call.message.message_id, text="Нажми, чтобы вернуться к категориям!",reply_markup=keyboard3)
+
+    elif call.data == "3":
+        bot.send_message(call.message.chat.id, text='''На данный момент бот ещё находится в разработке и не может ответить на вопросы:(
+Но может ты найдёшь свой вопрос в базе вопросов!
+https://www.royalcanin.com/ru/results?category=tips&searchQuery=
+''')
+        keyboard3 = types.InlineKeyboardMarkup()
+        button = types.InlineKeyboardButton(text="категории", callback_data="first")
+        keyboard3.add(button)
+        bot.edit_message_text(chat_id=call.message.chat.id,message_id=call.message.message_id, text="Нажми, чтобы вернуться к категориям!",reply_markup=keyboard3)
+
+
+if __name__ == "__main__":
+    bot.polling()
+
+
+
+
