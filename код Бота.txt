@@ -12,8 +12,6 @@ def handle_start(message):
     user_markup.row('прочее')
     bot.send_message(message.from_user.id, 'Добро пожаловать в нашу ветеринарную клинику! Чем можем быть полезны?',reply_markup=user_markup)
 
-
-
 @bot.message_handler(content_types=["text"]) # тут ответы на вопросы пользователя
 def get_text_messages(message):
     if message.text == 'срочный вызов':
